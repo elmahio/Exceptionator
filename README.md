@@ -378,6 +378,46 @@ try { ... }
 catch (Exception ex) { Log(ex); }
 ```
 
+### EX025: Catching Exception and checking its type inside the catch block
+
+Flags catch blocks that handle `Exception` (or `System.Exception`) and then immediately check the exception's type with an is expression.
+If the code already distinguishes a specific type, a dedicated catch clause should be introduced instead.
+
+❌ Bad:
+```csharp
+try
+{
+    DoSomething();
+}
+catch (Exception ex)
+{
+    if (ex is InvalidOperationException)
+    {
+        HandleInvalidOperation();
+    }
+    else
+    {
+        Log(ex);
+    }
+}
+```
+
+✅ Good:
+```csharp
+try
+{
+    DoSomething();
+}
+catch (InvalidOperationException ex)
+{
+    HandleInvalidOperation();
+}
+catch (Exception ex)
+{
+    Log(ex);
+}
+```
+
 ## Acknowledgments
 
 * [Davide Bellone](https://github.com/bellons91)
