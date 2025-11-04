@@ -15,5 +15,19 @@ namespace ExceptionAnalyzer
             }
             return false;
         }
+
+        protected static bool InheritsFrom(ITypeSymbol type, ITypeSymbol potentialBase)
+        {
+            var current = type;
+            while (current.BaseType is not null)
+            {
+                if (SymbolEqualityComparer.Default.Equals(current.BaseType, potentialBase))
+                    return true;
+
+                current = current.BaseType;
+            }
+
+            return false;
+        }
     }
 }
