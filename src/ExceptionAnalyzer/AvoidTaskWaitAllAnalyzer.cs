@@ -36,12 +36,11 @@ namespace ExceptionAnalyzer
             context.RegisterSyntaxNodeAction(AnalyzeInvocation, SyntaxKind.InvocationExpression);
         }
 
-        private void AnalyzeInvocation(SyntaxNodeAnalysisContext context)
+        private static void AnalyzeInvocation(SyntaxNodeAnalysisContext context)
         {
             var invocation = (InvocationExpressionSyntax)context.Node;
 
-            var symbol = context.SemanticModel.GetSymbolInfo(invocation).Symbol as IMethodSymbol;
-            if (symbol == null || symbol.Name != "WaitAll")
+            if (context.SemanticModel.GetSymbolInfo(invocation).Symbol is not IMethodSymbol symbol || symbol.Name != "WaitAll")
                 return;
 
             if (symbol.ContainingType.ToDisplayString() != "System.Threading.Tasks.Task")

@@ -35,7 +35,7 @@ namespace ExceptionAnalyzer
             context.RegisterSyntaxNodeAction(AnalyzeProperty, SyntaxKind.PropertyDeclaration);
         }
 
-        private void AnalyzeProperty(SyntaxNodeAnalysisContext context)
+        private static void AnalyzeProperty(SyntaxNodeAnalysisContext context)
         {
             var property = (PropertyDeclarationSyntax)context.Node;
 
@@ -59,13 +59,9 @@ namespace ExceptionAnalyzer
                     context.ReportDiagnostic(Diagnostic.Create(Rule, throwExpr.GetLocation()));
                 }
             }
-            else if (property.ExpressionBody != null)
+            else if (property.ExpressionBody != null && property.ExpressionBody.Expression is ThrowExpressionSyntax throwExpr)
             {
-                // Handle properties written as: public string Foo => throw ...
-                if (property.ExpressionBody.Expression is ThrowExpressionSyntax throwExpr)
-                {
-                    context.ReportDiagnostic(Diagnostic.Create(Rule, throwExpr.GetLocation()));
-                }
+                context.ReportDiagnostic(Diagnostic.Create(Rule, throwExpr.GetLocation()));
             }
         }
     }

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,8 +25,7 @@ namespace ExceptionAnalyzer
         {
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
             var diagnostic = context.Diagnostics[0];
-            var node = root?.FindNode(diagnostic.Location.SourceSpan) as ObjectCreationExpressionSyntax;
-            if (node == null)
+            if (root?.FindNode(diagnostic.Location.SourceSpan) is not ObjectCreationExpressionSyntax node)
                 return;
 
             context.RegisterCodeFix(
@@ -38,7 +36,7 @@ namespace ExceptionAnalyzer
                 diagnostic);
         }
 
-        private async Task<Document> AddInnerExceptionAsync(Document document, ObjectCreationExpressionSyntax creation, CancellationToken cancellationToken)
+        private static async Task<Document> AddInnerExceptionAsync(Document document, ObjectCreationExpressionSyntax creation, CancellationToken cancellationToken)
         {
             var editor = await DocumentEditor.CreateAsync(document, cancellationToken);
 
@@ -54,7 +52,7 @@ namespace ExceptionAnalyzer
             // Tilføj som sidste argument
             var updatedArgs = creation.ArgumentList != null
                 ? creation.ArgumentList.Arguments.Add(newArg)
-                : SyntaxFactory.SeparatedList(new[] { newArg });
+                : SyntaxFactory.SeparatedList([newArg]);
 
             var newArgList = creation.ArgumentList != null
                 ? creation.ArgumentList.WithArguments(updatedArgs)

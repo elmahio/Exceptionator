@@ -34,11 +34,10 @@ namespace ExceptionAnalyzer
             context.RegisterSyntaxNodeAction(AnalyzeThrow, SyntaxKind.ThrowStatement);
         }
 
-        private void AnalyzeThrow(SyntaxNodeAnalysisContext context)
+        private static void AnalyzeThrow(SyntaxNodeAnalysisContext context)
         {
             var throwStmt = (ThrowStatementSyntax)context.Node;
-            var objCreation = throwStmt.Expression as ObjectCreationExpressionSyntax;
-            if (objCreation == null)
+            if (throwStmt.Expression is not ObjectCreationExpressionSyntax objCreation)
                 return;
 
             // Are we in a catch-block with an exception-symbol?

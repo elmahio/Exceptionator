@@ -8,7 +8,7 @@ namespace ExceptionAnalyzer
 {
     /// <summary>
     /// EX019: Avoid general catch-all without any handling
-    /// Detects general catch blocks that don’t include logging, rethrow, or even a comment.
+    /// Detects general catch blocks that don't include logging, rethrow, or even a comment.
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class NotImplementedExceptionAnalyzer : DiagnosticAnalyzer
@@ -33,7 +33,7 @@ namespace ExceptionAnalyzer
             context.RegisterSyntaxNodeAction(AnalyzeThrow, SyntaxKind.ThrowStatement);
         }
 
-        private void AnalyzeThrow(SyntaxNodeAnalysisContext context)
+        private static void AnalyzeThrow(SyntaxNodeAnalysisContext context)
         {
             var throwStmt = (ThrowStatementSyntax)context.Node;
             if (throwStmt.Expression is not ObjectCreationExpressionSyntax creation)

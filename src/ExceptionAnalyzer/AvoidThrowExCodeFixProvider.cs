@@ -1,11 +1,12 @@
-﻿using System.Collections.Immutable;
+﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editing;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Editing;
 
 namespace ExceptionAnalyzer
 {
@@ -24,8 +25,7 @@ namespace ExceptionAnalyzer
         {
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
             var diagnostic = context.Diagnostics[0];
-            var throwStmt = root?.FindNode(diagnostic.Location.SourceSpan) as ThrowStatementSyntax;
-            if (throwStmt == null)
+            if (root?.FindNode(diagnostic.Location.SourceSpan) is not ThrowStatementSyntax throwStmt)
                 return;
 
             context.RegisterCodeFix(
@@ -36,12 +36,11 @@ namespace ExceptionAnalyzer
                 diagnostic);
         }
 
-        private async Task<Document> ReplaceWithThrowOnlyAsync(Document document, ThrowStatementSyntax throwStmt, CancellationToken cancellationToken)
+        private static async Task<Document> ReplaceWithThrowOnlyAsync(Document document, ThrowStatementSyntax throwStmt, CancellationToken cancellationToken)
         {
             var editor = await DocumentEditor.CreateAsync(document, cancellationToken);
 
-            var newThrow = throwStmt.WithExpression(null)
-                                    .WithTrailingTrivia(throwStmt.GetTrailingTrivia());
+            var newThrow = SyntaxFactory.ThrowStatement().WithTriviaFrom(throwStmt);
 
             editor.ReplaceNode(throwStmt, newThrow);
             return editor.GetChangedDocument();

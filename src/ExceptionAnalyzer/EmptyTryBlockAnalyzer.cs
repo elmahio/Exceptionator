@@ -4,7 +4,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace ExceptionAnalyzer
 {
@@ -35,7 +34,7 @@ namespace ExceptionAnalyzer
             context.RegisterSyntaxNodeAction(AnalyzeTryBlock, SyntaxKind.TryStatement);
         }
 
-        private void AnalyzeTryBlock(SyntaxNodeAnalysisContext context)
+        private static void AnalyzeTryBlock(SyntaxNodeAnalysisContext context)
         {
             var tryStatement = (TryStatementSyntax)context.Node;
 

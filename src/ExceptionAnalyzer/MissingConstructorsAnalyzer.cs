@@ -33,7 +33,7 @@ namespace ExceptionAnalyzer
             context.RegisterSyntaxNodeAction(AnalyzeClassDeclaration, SyntaxKind.ClassDeclaration);
         }
 
-        private void AnalyzeClassDeclaration(SyntaxNodeAnalysisContext context)
+        private static void AnalyzeClassDeclaration(SyntaxNodeAnalysisContext context)
         {
             var classDecl = (ClassDeclarationSyntax)context.Node;
 

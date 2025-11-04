@@ -34,7 +34,7 @@ namespace ExceptionAnalyzer
             context.RegisterSyntaxNodeAction(AnalyzeThrowStatement, SyntaxKind.ThrowStatement);
         }
 
-        private void AnalyzeThrowStatement(SyntaxNodeAnalysisContext context)
+        private static void AnalyzeThrowStatement(SyntaxNodeAnalysisContext context)
         {
             var throwStatement = (ThrowStatementSyntax)context.Node;
             if (throwStatement.Expression is MemberAccessExpressionSyntax memberAccess

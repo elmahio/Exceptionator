@@ -35,7 +35,7 @@ namespace ExceptionAnalyzer
             context.RegisterSyntaxNodeAction(AnalyzeCatchBlock, SyntaxKind.CatchClause);
         }
 
-        private void AnalyzeCatchBlock(SyntaxNodeAnalysisContext context)
+        private static void AnalyzeCatchBlock(SyntaxNodeAnalysisContext context)
         {
             var catchClause = (CatchClauseSyntax)context.Node;
             if (catchClause.Declaration is not { Identifier.Text: var exceptionIdentifier })

@@ -34,7 +34,7 @@ namespace ExceptionAnalyzer
             context.RegisterSyntaxNodeAction(AnalyzeCatchClause, SyntaxKind.CatchClause);
         }
 
-        private void AnalyzeCatchClause(SyntaxNodeAnalysisContext context)
+        private static void AnalyzeCatchClause(SyntaxNodeAnalysisContext context)
         {
             var catchClause = (CatchClauseSyntax)context.Node;
             if (catchClause.Block == null || catchClause.Declaration == null || catchClause.Declaration.Type == null)

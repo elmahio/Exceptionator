@@ -34,24 +34,35 @@ namespace ExceptionAnalyzer
             context.RegisterSyntaxNodeAction(AnalyzeCatch, SyntaxKind.CatchClause);
         }
 
-        private void AnalyzeCatch(SyntaxNodeAnalysisContext context)
+        private static void AnalyzeCatch(SyntaxNodeAnalysisContext context)
         {
             var catchClause = (CatchClauseSyntax)context.Node;
-            var identifier = catchClause.Declaration?.Identifier;
-            if (identifier == null || !identifier.HasValue || identifier.Value.ValueText == "")
+            var declaration = catchClause.Declaration;
+            if (declaration == null)
+                return;
+
+            var identifier = declaration.Identifier;
+            var name = identifier.ValueText;
+
+            if (string.IsNullOrWhiteSpace(name))
                 return;
 
             var block = catchClause.Block;
-            if (block == null)
-                return;
+            var usedInBlock = block != null
+                && block
+                    .DescendantTokens()
+                    .Any(t => t.IsKind(SyntaxKind.IdentifierToken) && t.ValueText == name);
 
-            // Is the variable used?
-            var used = block.DescendantTokens()
-                .Any(t => t.IsKind(SyntaxKind.IdentifierToken) && t.ValueText == identifier.Value.ValueText);
+            var filter = catchClause.Filter;
+            var usedInFilter = filter != null
+                && filter
+                    .FilterExpression
+                    .DescendantTokens()
+                    .Any(t => t.IsKind(SyntaxKind.IdentifierToken) && t.ValueText == name);
 
-            if (!used)
+            if (!usedInBlock && !usedInFilter)
             {
-                var diagnostic = Diagnostic.Create(Rule, identifier.Value.GetLocation(), identifier.Value.ValueText);
+                var diagnostic = Diagnostic.Create(Rule, identifier.GetLocation(), name);
                 context.ReportDiagnostic(diagnostic);
             }
         }

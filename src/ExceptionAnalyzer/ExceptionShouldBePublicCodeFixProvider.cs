@@ -3,7 +3,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Formatting;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -43,28 +42,27 @@ namespace ExceptionAnalyzer
                 diagnostic);
         }
 
-        private static async Task<Document> MakePublicAsync(Document document, ClassDeclarationSyntax classDecl, CancellationToken cancellationToken)
+        private static async Task<Document> MakePublicAsync(Document document, ClassDeclarationSyntax classDeclaration, CancellationToken cancellationToken)
         {
-            var modifiers = classDecl.Modifiers;
+            var leading = classDeclaration.Keyword.LeadingTrivia;
 
-            // Remove existing accessibility modifiers
-            var cleanedModifiers = new SyntaxTokenList(modifiers
-                .Where(m => !m.IsKind(SyntaxKind.InternalKeyword)
-                         && !m.IsKind(SyntaxKind.PrivateKeyword)
-                         && !m.IsKind(SyntaxKind.ProtectedKeyword)
-                         && !m.IsKind(SyntaxKind.PublicKeyword)));
+            var cleanedModifiers = new SyntaxTokenList(
+                classDeclaration.Modifiers.Where(m =>
+                    !m.IsKind(SyntaxKind.PublicKeyword) &&
+                    !m.IsKind(SyntaxKind.InternalKeyword) &&
+                    !m.IsKind(SyntaxKind.PrivateKeyword) &&
+                    !m.IsKind(SyntaxKind.ProtectedKeyword)));
 
-            // Add 'public' at the start (with appropriate spacing)
-            var publicToken = SyntaxFactory.Token(SyntaxKind.PublicKeyword)
-                .WithTrailingTrivia(SyntaxFactory.Whitespace(" "));
+            var publicToken = SyntaxFactory.Token(leading, SyntaxKind.PublicKeyword, SyntaxFactory.TriviaList(SyntaxFactory.Space));
 
-            var newModifiers = cleanedModifiers.Insert(0, publicToken);
+            var classKeyword = classDeclaration.Keyword.WithLeadingTrivia(SyntaxTriviaList.Empty);
 
-            var newClassDecl = classDecl.WithModifiers(newModifiers).WithAdditionalAnnotations(Formatter.Annotation);
+            var newDecl = classDeclaration
+                .WithModifiers(cleanedModifiers.Insert(0, publicToken))
+                .WithKeyword(classKeyword);
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var newRoot = root!.ReplaceNode(classDecl, newClassDecl);
-
+            var newRoot = root!.ReplaceNode(classDeclaration, newDecl);
             return document.WithSyntaxRoot(newRoot);
         }
     }

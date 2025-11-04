@@ -34,7 +34,7 @@ namespace ExceptionAnalyzer
             context.RegisterSyntaxNodeAction(AnalyzeConstructor, SyntaxKind.ConstructorDeclaration);
         }
 
-        private void AnalyzeConstructor(SyntaxNodeAnalysisContext context)
+        private static void AnalyzeConstructor(SyntaxNodeAnalysisContext context)
         {
             var ctor = (ConstructorDeclarationSyntax)context.Node;
 
@@ -54,7 +54,7 @@ namespace ExceptionAnalyzer
                 parameters[0].Type is PredefinedTypeSyntax p1 &&
                 p1.Keyword.IsKind(SyntaxKind.StringKeyword))
             {
-                CheckBaseCall(context, ctor, new[] { "message" });
+                CheckBaseCall(context, ctor, ["message"]);
             }
             else if (parameters.Count == 2 &&
                      parameters[0].Type is PredefinedTypeSyntax p2 &&
@@ -62,11 +62,11 @@ namespace ExceptionAnalyzer
                      parameters[1].Type is IdentifierNameSyntax id2 &&
                      id2.Identifier.Text == "Exception")
             {
-                CheckBaseCall(context, ctor, new[] { "message", parameters[1].Identifier.Text });
+                CheckBaseCall(context, ctor, ["message", parameters[1].Identifier.Text]);
             }
         }
 
-        private void CheckBaseCall(SyntaxNodeAnalysisContext context, ConstructorDeclarationSyntax ctor, string[] expectedArgs)
+        private static void CheckBaseCall(SyntaxNodeAnalysisContext context, ConstructorDeclarationSyntax ctor, string[] expectedArgs)
         {
             if (ctor.Initializer == null || !ctor.Initializer.IsKind(SyntaxKind.BaseConstructorInitializer))
             {
@@ -75,13 +75,9 @@ namespace ExceptionAnalyzer
             }
 
             var actualArgs = ctor.Initializer.ArgumentList?.Arguments.Select(a => a.ToString()).ToArray() ?? [];
-
-            foreach (var expected in expectedArgs)
+            foreach (var expected in expectedArgs.Where(expected => !actualArgs.Contains(expected)))
             {
-                if (!actualArgs.Contains(expected))
-                {
-                    context.ReportDiagnostic(Diagnostic.Create(Rule, ctor.Initializer.GetLocation(), expected));
-                }
+                context.ReportDiagnostic(Diagnostic.Create(Rule, ctor.Initializer.GetLocation(), expected));
             }
         }
     }

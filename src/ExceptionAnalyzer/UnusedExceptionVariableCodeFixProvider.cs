@@ -1,12 +1,12 @@
-﻿using System.Collections.Immutable;
-using System.Composition;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Editing;
+using System.Collections.Immutable;
+using System.Composition;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace ExceptionAnalyzer
 {
@@ -25,29 +25,38 @@ namespace ExceptionAnalyzer
         {
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
             var diagnostic = context.Diagnostics[0];
-            var node = root?.FindNode(diagnostic.Location.SourceSpan)?.Parent?.Parent as CatchClauseSyntax;
 
-            if (node == null || node.Declaration == null)
+            var catchClause = root!
+                .FindNode(diagnostic.Location.SourceSpan)
+                .AncestorsAndSelf()
+                .OfType<CatchClauseSyntax>()
+                .FirstOrDefault();
+
+            if (catchClause?.Declaration is null)
                 return;
 
             context.RegisterCodeFix(
                 Microsoft.CodeAnalysis.CodeActions.CodeAction.Create(
-                    title: Title,
-                    createChangedDocument: c => RemoveExceptionVariableAsync(context.Document, node, c),
-                    equivalenceKey: Title),
+                    Title,
+                    c => RemoveExceptionVariableAsync(context.Document, catchClause, c),
+                    Title),
                 diagnostic);
         }
 
-        private async Task<Document> RemoveExceptionVariableAsync(Document document, CatchClauseSyntax catchClause, CancellationToken cancellationToken)
+        private static async Task<Document> RemoveExceptionVariableAsync(Document document, CatchClauseSyntax catchClause, CancellationToken cancellationToken)
         {
-            var editor = await DocumentEditor.CreateAsync(document, cancellationToken);
+            var oldDeclaration = catchClause.Declaration!;
+            var newDeclaration = SyntaxFactory
+                .CatchDeclaration(oldDeclaration.Type.WithoutTrailingTrivia())
+                .WithOpenParenToken(oldDeclaration.OpenParenToken)
+                .WithCloseParenToken(oldDeclaration.CloseParenToken);
 
-            // Behold typen, fjern variabelnavn
-            var newDeclaration = catchClause.Declaration!.WithIdentifier(SyntaxFactory.MissingToken(SyntaxKind.IdentifierToken));
             var newCatch = catchClause.WithDeclaration(newDeclaration);
 
-            editor.ReplaceNode(catchClause, newCatch);
-            return editor.GetChangedDocument();
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var newRoot = root!.ReplaceNode(catchClause, newCatch);
+
+            return document.WithSyntaxRoot(newRoot);
         }
     }
 }

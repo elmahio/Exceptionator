@@ -12,7 +12,7 @@ namespace ExceptionAnalyzer
     /// Recommends logging the exception directly rather than calling ToString.
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class ExceptionToStringLoggingAnalyzer : DiagnosticAnalyzer
+    public class ExceptionToStringLoggingAnalyzer : CustomExceptionAnalyzerBase
     {
         public const string DiagnosticId = "EX015";
 
@@ -34,7 +34,7 @@ namespace ExceptionAnalyzer
             context.RegisterSyntaxNodeAction(AnalyzeInvocation, SyntaxKind.InvocationExpression);
         }
 
-        private void AnalyzeInvocation(SyntaxNodeAnalysisContext context)
+        private static void AnalyzeInvocation(SyntaxNodeAnalysisContext context)
         {
             var invocation = (InvocationExpressionSyntax)context.Node;
             var arguments = invocation.ArgumentList?.Arguments;
@@ -56,16 +56,16 @@ namespace ExceptionAnalyzer
                 // Also catch: $"something {ex.ToString()}" or $"something {ex}"
                 if (arg.Expression is InterpolatedStringExpressionSyntax interpolated)
                 {
-                    foreach (var content in interpolated.Contents.OfType<InterpolationSyntax>())
+                    foreach (var expression in interpolated.Contents.OfType<InterpolationSyntax>().Select(content => content.Expression))
                     {
-                        if (content.Expression is InvocationExpressionSyntax interpInvocation &&
+                        if (expression is InvocationExpressionSyntax interpInvocation &&
                             interpInvocation.Expression is MemberAccessExpressionSyntax ma &&
                             ma.Name.Identifier.Text == "ToString" &&
                             ma.Expression is IdentifierNameSyntax interpId)
                         {
                             ReportIfException(context, interpId, arg);
                         }
-                        else if (content.Expression is IdentifierNameSyntax interpSimpleId)
+                        else if (expression is IdentifierNameSyntax interpSimpleId)
                         {
                             ReportIfException(context, interpSimpleId, arg);
                         }
@@ -74,11 +74,14 @@ namespace ExceptionAnalyzer
             }
         }
 
-        private void ReportIfException(SyntaxNodeAnalysisContext context, IdentifierNameSyntax id, ArgumentSyntax arg)
+        private static void ReportIfException(SyntaxNodeAnalysisContext context, IdentifierNameSyntax id, ArgumentSyntax arg)
         {
             var symbol = context.SemanticModel.GetSymbolInfo(id).Symbol;
-            if (symbol is ILocalSymbol localSymbol &&
-                localSymbol.Type.ToDisplayString() == "System.Exception")
+            var type = (symbol as ITypeSymbol) ?? (symbol as ILocalSymbol)?.Type
+                ?? (symbol as IParameterSymbol)?.Type
+                ?? (symbol as IFieldSymbol)?.Type
+                ?? (symbol as IPropertySymbol)?.Type;
+            if (type != null && InheritsFromException(type))
             {
                 context.ReportDiagnostic(Diagnostic.Create(Rule, arg.GetLocation()));
             }

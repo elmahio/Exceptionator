@@ -24,17 +24,8 @@ namespace ExceptionAnalyzer
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S108:Nested blocks of code should not be left empty", Justification = "<Pending>")]
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            try
-            {
-
-            }
-            catch (System.Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Error in RegisterCodeFixesAsync: {ex.Message}");
-            }
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-            var node = root?.FindNode(context.Span) as CatchClauseSyntax;
-            if (node == null)
+            if (root?.FindNode(context.Span) is not CatchClauseSyntax node)
                 return;
 
             context.RegisterCodeFix(
@@ -45,7 +36,7 @@ namespace ExceptionAnalyzer
                 context.Diagnostics);
         }
 
-        private async Task<Document> AddRethrowAsync(Document document, CatchClauseSyntax catchClause, CancellationToken cancellationToken)
+        private static async Task<Document> AddRethrowAsync(Document document, CatchClauseSyntax catchClause, CancellationToken cancellationToken)
         {
             var editor = await DocumentEditor.CreateAsync(document, cancellationToken);
 

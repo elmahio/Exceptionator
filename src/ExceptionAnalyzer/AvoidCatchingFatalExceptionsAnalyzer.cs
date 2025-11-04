@@ -1,5 +1,4 @@
-﻿
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -41,7 +40,7 @@ namespace ExceptionAnalyzer
             context.RegisterSyntaxNodeAction(AnalyzeCatch, SyntaxKind.CatchClause);
         }
 
-        private void AnalyzeCatch(SyntaxNodeAnalysisContext context)
+        private static void AnalyzeCatch(SyntaxNodeAnalysisContext context)
         {
             var catchClause = (CatchClauseSyntax)context.Node;
             var typeSyntax = catchClause.Declaration?.Type;

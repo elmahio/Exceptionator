@@ -8,7 +8,7 @@ namespace ExceptionAnalyzer
 {
     /// <summary>
     /// EX007: Pointless try/catch block
-    /// Detects try/catch blocks that don’t add meaningful handling logic.
+    /// Detects try/catch blocks that don't add meaningful handling logic.
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class PointlessTryCatchAnalyzer : DiagnosticAnalyzer
@@ -33,7 +33,7 @@ namespace ExceptionAnalyzer
             context.RegisterSyntaxNodeAction(AnalyzeTryCatch, SyntaxKind.TryStatement);
         }
 
-        private void AnalyzeTryCatch(SyntaxNodeAnalysisContext context)
+        private static void AnalyzeTryCatch(SyntaxNodeAnalysisContext context)
         {
             var tryStmt = (TryStatementSyntax)context.Node;
 

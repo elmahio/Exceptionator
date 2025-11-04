@@ -33,7 +33,7 @@ namespace ExceptionAnalyzer
             context.RegisterSyntaxNodeAction(AnalyzeThrow, SyntaxKind.ThrowStatement);
         }
 
-        private void AnalyzeThrow(SyntaxNodeAnalysisContext context)
+        private static void AnalyzeThrow(SyntaxNodeAnalysisContext context)
         {
             var throwStmt = (ThrowStatementSyntax)context.Node;
             if (throwStmt.Expression is not ObjectCreationExpressionSyntax objCreation)

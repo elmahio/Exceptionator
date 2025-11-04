@@ -2,7 +2,6 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using System;
 using System.Collections.Immutable;
 
 namespace ExceptionAnalyzer
@@ -33,7 +32,7 @@ namespace ExceptionAnalyzer
             context.RegisterSyntaxNodeAction(AnalyzeObjectCreation, SyntaxKind.ObjectCreationExpression);
         }
 
-        private void AnalyzeObjectCreation(SyntaxNodeAnalysisContext context)
+        private static void AnalyzeObjectCreation(SyntaxNodeAnalysisContext context)
         {
             var creation = (ObjectCreationExpressionSyntax)context.Node;
 

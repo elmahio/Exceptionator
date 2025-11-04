@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExceptionAnalyzer", "src\Ex
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExceptionAnalyzer.Vsix", "src\ExceptionAnalyzer.Vsix\ExceptionAnalyzer.Vsix.csproj", "{BA524279-658D-B1C8-7C45-DC1E3E9A0B98}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExceptionAnalyzer.Test", "test\ExceptionAnalyzer.Test\ExceptionAnalyzer.Test.csproj", "{57C6EDE8-3D71-4E51-9168-23E48DE60A7A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{BA524279-658D-B1C8-7C45-DC1E3E9A0B98}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BA524279-658D-B1C8-7C45-DC1E3E9A0B98}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BA524279-658D-B1C8-7C45-DC1E3E9A0B98}.Release|Any CPU.Build.0 = Release|Any CPU
+		{57C6EDE8-3D71-4E51-9168-23E48DE60A7A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{57C6EDE8-3D71-4E51-9168-23E48DE60A7A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{57C6EDE8-3D71-4E51-9168-23E48DE60A7A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{57C6EDE8-3D71-4E51-9168-23E48DE60A7A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

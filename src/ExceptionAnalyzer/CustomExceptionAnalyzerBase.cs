@@ -5,7 +5,7 @@ namespace ExceptionAnalyzer
 {
     public abstract class CustomExceptionAnalyzerBase : DiagnosticAnalyzer
     {
-        protected static bool InheritsFromException(INamedTypeSymbol? symbol)
+        protected static bool InheritsFromException(ITypeSymbol? symbol)
         {
             while (symbol != null)
             {

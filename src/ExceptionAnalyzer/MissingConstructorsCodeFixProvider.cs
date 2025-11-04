@@ -22,7 +22,9 @@ namespace ExceptionAnalyzer
         public sealed override FixAllProvider GetFixAllProvider() =>
             WellKnownFixAllProviders.BatchFixer;
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             var diagnostic = context.Diagnostics.First();
             context.RegisterCodeFix(
@@ -33,19 +35,18 @@ namespace ExceptionAnalyzer
                 diagnostic);
         }
 
-        private async Task<Document> AddConstructorsAsync(Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
+        private static async Task<Document> AddConstructorsAsync(Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             if (root == null || semanticModel == null)
                 return document;
 
-            var classDecl = root.FindNode(diagnostic.Location.SourceSpan) as ClassDeclarationSyntax;
-            if (classDecl == null)
+            if (root.FindNode(diagnostic.Location.SourceSpan) is not ClassDeclarationSyntax classDeclaration)
                 return document;
 
-            var editor = await DocumentEditor.CreateAsync(document, cancellationToken).ConfigureAwait(false);
-            var constructors = classDecl.Members.OfType<ConstructorDeclarationSyntax>().ToList();
+            await DocumentEditor.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+            var constructors = classDeclaration.Members.OfType<ConstructorDeclarationSyntax>().ToList();
 
             bool hasMessageCtor = constructors.Any(c =>
                 c.ParameterList.Parameters.Count == 1 &&
@@ -63,7 +64,7 @@ namespace ExceptionAnalyzer
 
             if (!hasMessageCtor)
             {
-                newConstructors.Add(SyntaxFactory.ConstructorDeclaration(classDecl.Identifier.Text)
+                newConstructors.Add(SyntaxFactory.ConstructorDeclaration(classDeclaration.Identifier.Text)
                     .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
                     .WithParameterList(SyntaxFactory.ParameterList(
                         SyntaxFactory.SingletonSeparatedList(
@@ -78,28 +79,28 @@ namespace ExceptionAnalyzer
 
             if (!hasMessageInnerCtor)
             {
-                newConstructors.Add(SyntaxFactory.ConstructorDeclaration(classDecl.Identifier.Text)
+                newConstructors.Add(SyntaxFactory.ConstructorDeclaration(classDeclaration.Identifier.Text)
                     .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
                     .WithParameterList(SyntaxFactory.ParameterList(
-                        SyntaxFactory.SeparatedList(new[]
-                        {
+                        SyntaxFactory.SeparatedList(
+                        [
                             SyntaxFactory.Parameter(SyntaxFactory.Identifier("message"))
                                 .WithType(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword))),
                             SyntaxFactory.Parameter(SyntaxFactory.Identifier("innerException"))
                                 .WithType(SyntaxFactory.IdentifierName("Exception"))
-                        })))
+                        ])))
                     .WithInitializer(SyntaxFactory.ConstructorInitializer(
                         SyntaxKind.BaseConstructorInitializer,
-                        SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(new[]
-                        {
+                        SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(
+                        [
                             SyntaxFactory.Argument(SyntaxFactory.IdentifierName("message")),
                             SyntaxFactory.Argument(SyntaxFactory.IdentifierName("innerException"))
-                        }))))
+                        ]))))
                     .WithBody(SyntaxFactory.Block()));
             }
 
-            var newClass = classDecl.AddMembers(newConstructors.ToArray());
-            var newRoot = root.ReplaceNode(classDecl, newClass);
+            var newClass = classDeclaration.AddMembers([.. newConstructors]);
+            var newRoot = root.ReplaceNode(classDeclaration, newClass);
             return document.WithSyntaxRoot(newRoot);
         }
     }

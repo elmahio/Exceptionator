@@ -27,8 +27,7 @@ namespace ExceptionAnalyzer
             var diagnostic = context.Diagnostics[0];
             var diagnosticSpan = diagnostic.Location.SourceSpan;
 
-            var node = root?.FindNode(diagnosticSpan) as ObjectCreationExpressionSyntax;
-            if (node == null) return;
+            if (root?.FindNode(diagnosticSpan) is not ObjectCreationExpressionSyntax node) return;
 
             context.RegisterCodeFix(
                 Microsoft.CodeAnalysis.CodeActions.CodeAction.Create(
@@ -38,14 +37,14 @@ namespace ExceptionAnalyzer
                 diagnostic);
         }
 
-        private async Task<Document> AddTodoMessageAsync(Document document, ObjectCreationExpressionSyntax creation, CancellationToken cancellationToken)
+        private static async Task<Document> AddTodoMessageAsync(Document document, ObjectCreationExpressionSyntax creation, CancellationToken cancellationToken)
         {
             var editor = await DocumentEditor.CreateAsync(document, cancellationToken);
             var newArg = SyntaxFactory.Argument(SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal("TODO: Add message")));
 
             var newArgs = creation.ArgumentList == null
-                ? SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(new[] { newArg }))
-                : creation.ArgumentList.WithArguments(SyntaxFactory.SeparatedList(new[] { newArg }));
+                ? SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList([newArg]))
+                : creation.ArgumentList.WithArguments(SyntaxFactory.SeparatedList([newArg]));
 
             var newCreation = creation.WithArgumentList(newArgs);
             editor.ReplaceNode(creation, newCreation);
