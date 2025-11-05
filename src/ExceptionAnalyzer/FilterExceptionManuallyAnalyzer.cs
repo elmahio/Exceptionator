@@ -8,8 +8,8 @@ using System.Linq;
 namespace ExceptionAnalyzer
 {
     /// <summary>
-    /// EX018: NotImplementedException left in code
-    /// Detects <code>throw new NotImplementedException()</code> left in methods or properties.
+    /// EX018: Avoid manual exception filtering inside catch
+    /// Detects catch blocks that catch an exception and then branch on the caught variable.
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class FilterExceptionManuallyAnalyzer : DiagnosticAnalyzer

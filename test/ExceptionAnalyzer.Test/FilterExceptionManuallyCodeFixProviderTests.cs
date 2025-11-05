@@ -4,7 +4,7 @@ using NUnit.Framework;
 
 namespace ExceptionAnalyzer.Test
 {
-    public class CatchExceptionAndTypeCheckCodeFixProviderTests : CodeFixTestBase<CatchExceptionAndTypeCheckAnalyzer, CatchExceptionAndTypeCheckCodeFixProvider>
+    public class FilterExceptionManuallyCodeFixProviderTests : CodeFixTestBase<FilterExceptionManuallyAnalyzer, FilterExceptionManuallyCodeFixProvider>
     {
         [Test]
         public async Task IntroducesSpecificCatchAndRemovesIf()
@@ -24,8 +24,10 @@ class C
             {
                 Console.WriteLine(""invalid"");
             }
-
-            Console.WriteLine(ex.Message);
+            else
+            {
+                Console.WriteLine(ex.Message);
+            }
         }
     }
 }";
@@ -49,9 +51,9 @@ class C
     }
 }";
 
-            var expected = new DiagnosticResult(CatchExceptionAndTypeCheckAnalyzer.DiagnosticId, DiagnosticSeverity.Info)
-                .WithMessage("This catch handles 'Exception' but checks for 'InvalidOperationException'. Consider adding a dedicated catch clause.")
-                .WithSpan(12, 13, 12, 15);
+            var expected = new DiagnosticResult(FilterExceptionManuallyAnalyzer.DiagnosticId, DiagnosticSeverity.Info)
+                .WithMessage("Use exception filters or catch specific exception types instead of 'if (ex is ...)'.")
+                .WithSpan(12, 13, 19, 14);
 
             await VerifyCodeFixAsync(source, fixedSource, expected);
         }

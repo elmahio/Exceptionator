@@ -27,6 +27,23 @@ class C
         }
 
         [Test]
+        public async Task ReportsDiagnosticWhenThrowingNotImplementedExceptionFromExpression()
+        {
+            var source = @"
+using System;
+class C
+{
+    void M() => throw new NotImplementedException();
+}";
+
+            var expected = new DiagnosticResult(NotImplementedExceptionAnalyzer.DiagnosticId, DiagnosticSeverity.Warning)
+                .WithMessage("Avoid leaving 'throw new NotImplementedException()' in production code.")
+                .WithSpan(5, 17, 5, 52);
+
+            await VerifyAnalyzerAsync(source, expected);
+        }
+
+        [Test]
         public async Task DoesNotReportDiagnosticForOtherThrows() => await VerifyAnalyzerAsync(@"
 using System;
 class C

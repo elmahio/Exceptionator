@@ -7,8 +7,8 @@ using System.Collections.Immutable;
 namespace ExceptionAnalyzer
 {
     /// <summary>
-    /// EX019: Avoid general catch-all without any handling
-    /// Detects general catch blocks that don't include logging, rethrow, or even a comment.
+    /// EX019: NotImplementedException left in code
+    /// Detects <code>throw new NotImplementedException()</code> left in methods or properties.
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class NotImplementedExceptionAnalyzer : DiagnosticAnalyzer
@@ -30,13 +30,25 @@ namespace ExceptionAnalyzer
         {
             context.EnableConcurrentExecution();
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-            context.RegisterSyntaxNodeAction(AnalyzeThrow, SyntaxKind.ThrowStatement);
+            context.RegisterSyntaxNodeAction(AnalyzeThrowStatement, SyntaxKind.ThrowStatement);
+            context.RegisterSyntaxNodeAction(AnalyzeThrowExpression, SyntaxKind.ThrowExpression);
         }
 
-        private static void AnalyzeThrow(SyntaxNodeAnalysisContext context)
+        private static void AnalyzeThrowStatement(SyntaxNodeAnalysisContext context)
         {
             var throwStmt = (ThrowStatementSyntax)context.Node;
-            if (throwStmt.Expression is not ObjectCreationExpressionSyntax creation)
+            AnalyzeCreation(context, throwStmt.Expression, throwStmt.GetLocation());
+        }
+
+        private static void AnalyzeThrowExpression(SyntaxNodeAnalysisContext context)
+        {
+            var throwExpr = (ThrowExpressionSyntax)context.Node;
+            AnalyzeCreation(context, throwExpr.Expression, throwExpr.GetLocation());
+        }
+
+        private static void AnalyzeCreation(SyntaxNodeAnalysisContext context, ExpressionSyntax? expr, Location location)
+        {
+            if (expr is not ObjectCreationExpressionSyntax creation)
                 return;
 
             if (context.SemanticModel.GetSymbolInfo(creation.Type).Symbol is not INamedTypeSymbol symbol)
@@ -44,7 +56,7 @@ namespace ExceptionAnalyzer
 
             if (symbol.ToDisplayString() == "System.NotImplementedException")
             {
-                context.ReportDiagnostic(Diagnostic.Create(Rule, throwStmt.GetLocation()));
+                context.ReportDiagnostic(Diagnostic.Create(Rule, location));
             }
         }
     }

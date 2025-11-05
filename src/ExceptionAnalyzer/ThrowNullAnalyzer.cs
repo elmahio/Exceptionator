@@ -7,8 +7,7 @@ using System.Collections.Immutable;
 namespace ExceptionAnalyzer
 {
     /// <summary>
-    /// EX016: Avoid empty catch when throwing new exception without message
-    /// Detects cases where a new exception is thrown in a catch block without message or inner exception.
+    /// EX016: Avoid throwing null – use a specific exception type instead.
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class ThrowNullAnalyzer : DiagnosticAnalyzer

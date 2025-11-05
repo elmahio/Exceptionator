@@ -108,7 +108,7 @@ throw new Exception();
 
 ### EX007: Pointless try/catch block
 
-Detects try/catch blocks that don’t add meaningful handling logic.
+Detects try/catch blocks that don't add meaningful handling logic.
 
 ❌ Bad:
 ```csharp
@@ -232,18 +232,16 @@ LogError("Error: " + ex.ToString());
 LogError(ex);
 ```
 
-### EX016: Avoid empty catch when throwing new exception without message
-
-Detects cases where a new exception is thrown in a catch block without message or inner exception.
+### EX016: Avoid throwing null – use a specific exception type instead.
 
 ❌ Bad:
 ```csharp
-catch (Exception ex) { throw new Exception(); }
+throw null;
 ```
 
 ✅ Good:
 ```csharp
-catch (Exception ex) { throw new Exception("Something went wrong", ex); }
+throw new InvalidOperationException("An error");
 ```
 
 ### EX017: Avoid when clauses that always evaluate to true
@@ -260,7 +258,30 @@ catch (Exception ex) when (true) { Handle(ex); }
 catch (Exception ex) when (ex is IOException) { Handle(ex); }
 ```
 
-### EX018: NotImplementedException left in code
+### EX018: Filter exceptions manually inside catch
+
+Detects catch blocks that catch a broad exception and then manually filter using if (`ex is ...`). Prefer catch filters (`when`) or catching specific exception types instead.
+
+❌ Bad:
+```csharp
+try { ... }
+catch (Exception ex)
+{
+    if (ex is ArgumentException)
+        HandleArgument();
+}
+```
+
+✅ Good:
+```csharp
+try { ... }
+catch (ArgumentException)
+{
+    HandleArgument();
+}
+```
+
+### EX019: NotImplementedException left in code
 
 Detects `throw new NotImplementedException()` left in methods or properties.
 
@@ -272,20 +293,6 @@ public void DoWork() => throw new NotImplementedException();
 ✅ Good:
 ```csharp
 public void DoWork() => ActualImplementation();
-```
-
-### EX019: Avoid general catch-all without any handling
-
-Detects general catch blocks that don’t include logging, rethrow, or even a comment.
-
-❌ Bad:
-```csharp
-try { ... } catch { }
-```
-
-✅ Good:
-```csharp
-try { ... } catch { /* intentionally blank */ }
 ```
 
 ### EX020: Exception class should be public
@@ -376,46 +383,6 @@ catch (StackOverflowException ex) { Log(ex); }
 ```csharp
 try { ... }
 catch (Exception ex) { Log(ex); }
-```
-
-### EX025: Catching Exception and checking its type inside the catch block
-
-Flags catch blocks that handle `Exception` (or `System.Exception`) and then immediately check the exception's type with an is expression.
-If the code already distinguishes a specific type, a dedicated catch clause should be introduced instead.
-
-❌ Bad:
-```csharp
-try
-{
-    DoSomething();
-}
-catch (Exception ex)
-{
-    if (ex is InvalidOperationException)
-    {
-        HandleInvalidOperation();
-    }
-    else
-    {
-        Log(ex);
-    }
-}
-```
-
-✅ Good:
-```csharp
-try
-{
-    DoSomething();
-}
-catch (InvalidOperationException ex)
-{
-    HandleInvalidOperation();
-}
-catch (Exception ex)
-{
-    Log(ex);
-}
 ```
 
 ## Acknowledgments

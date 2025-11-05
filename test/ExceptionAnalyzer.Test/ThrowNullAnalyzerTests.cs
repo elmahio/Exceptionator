@@ -1,16 +1,10 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Testing;
 using NUnit.Framework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ExceptionAnalyzer.Test
 {
-    public class ThrowNullAnalyzerTests
-        : AnalyzerTestBase<ThrowNullAnalyzer>
+    public class ThrowNullAnalyzerTests : AnalyzerTestBase<ThrowNullAnalyzer>
     {
         [Test]
         public async Task ReportsDiagnosticWhenThrowingNull()
