@@ -1,6 +1,5 @@
 ﻿namespace ExceptionAnalyzer.Sample
 {
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Code Smell", "S3871:Exception types should be \"public\"", Justification = "<Pending>")]
     internal static class EX022
     {
         public class MyCustomException : Exception

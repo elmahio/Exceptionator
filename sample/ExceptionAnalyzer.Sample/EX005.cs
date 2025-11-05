@@ -1,8 +1,8 @@
-﻿namespace ExceptionAnalyzer.Sample
+﻿#pragma warning disable CS0168 // Variable is declared but never used
+namespace ExceptionAnalyzer.Sample
 {
     internal static class EX005
     {
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0059:Unnecessary assignment of a value", Justification = "<Pending>")]
         public static void Method()
         {
             try
@@ -17,3 +17,4 @@
         }
     }
 }
+#pragma warning restore CS0168 // Variable is declared but never used
