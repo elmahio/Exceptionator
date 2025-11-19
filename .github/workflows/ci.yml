@@ -22,10 +22,10 @@ jobs:
     - name: Update version
       run: |
         (Get-Content -Path src\ExceptionAnalyzer.Vsix\source.extension.vsixmanifest) |
-          ForEach-Object {$_ -Replace '1.0.0', '1.2.${{ github.run_number }}'} |
+          ForEach-Object {$_ -Replace '1.0.0', '1.3.${{ github.run_number }}'} |
             Set-Content -Path src\ExceptionAnalyzer.Vsix\source.extension.vsixmanifest
         (Get-Content -Path src\ExceptionAnalyzer\ExceptionAnalyzer.csproj) |
-          ForEach-Object {$_ -Replace '1.0.0.0', '1.2.${{ github.run_number }}.0'} |
+          ForEach-Object {$_ -Replace '1.0.0.0', '1.3.${{ github.run_number }}.0'} |
             Set-Content -Path src\ExceptionAnalyzer\ExceptionAnalyzer.csproj
 
     - name: Restore
@@ -39,8 +39,8 @@ jobs:
 
     - uses: actions/upload-artifact@v4
       with:
-        name: TheExceptionator.Analyzers.1.2.${{ github.run_number }}.nupkg
-        path: src\ExceptionAnalyzer\bin\Release\TheExceptionator.Analyzers.1.2.${{ github.run_number }}.nupkg
+        name: TheExceptionator.Analyzers.1.3.${{ github.run_number }}.nupkg
+        path: src\ExceptionAnalyzer\bin\Release\TheExceptionator.Analyzers.1.3.${{ github.run_number }}.nupkg
 
     - uses: actions/upload-artifact@v4
       with:
@@ -54,14 +54,14 @@ jobs:
       with:
         files: |
           ./src/ExceptionAnalyzer.Vsix/bin/Release/net472/ExceptionAnalyzer.Vsix.vsix
-          ./src/ExceptionAnalyzer/bin/Release/TheExceptionator.Analyzers.1.2.${{ github.run_number }}.nupkg
-        tag_name: 1.2.${{ github.run_number }}
-        name: Release 1.2.${{ github.run_number }}
+          ./src/ExceptionAnalyzer/bin/Release/TheExceptionator.Analyzers.1.3.${{ github.run_number }}.nupkg
+        tag_name: 1.3.${{ github.run_number }}
+        name: Release 1.3.${{ github.run_number }}
         draft: false
         fail_on_unmatched_files: true
         generate_release_notes: true
         token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Push TheExceptionator.Analyzers to nuget.org
-      run: dotnet nuget push src\ExceptionAnalyzer\bin\Release\TheExceptionator.Analyzers.1.2.${{ github.run_number }}.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+      run: dotnet nuget push src\ExceptionAnalyzer\bin\Release\TheExceptionator.Analyzers.1.3.${{ github.run_number }}.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
       if: ${{ github.event_name == 'push' }}
