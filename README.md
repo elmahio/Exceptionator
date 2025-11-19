@@ -385,6 +385,80 @@ try { ... }
 catch (Exception ex) { Log(ex); }
 ```
 
+### EX025: Handle documented exceptions or propagate them explicitly
+
+Flags calls to methods that document thrown exceptions (via `<exception>` XML comments) when the caller does not handle or document those exceptions.
+
+❌ Bad:
+```csharp
+public void Method1()
+{
+    Method2(); // Method2 documents that it may throw NullReferenceException
+}
+
+/// <summary>
+/// <exception cref="System.NullReferenceException"/>
+/// </summary>
+public void Method2()
+{
+    var x = 1 / 0;
+}
+```
+
+✅ Good:
+```csharp
+public void Method1()
+{
+    try
+    {
+        Method2();
+    }
+    catch (NullReferenceException ex)
+    {
+        throw;
+    }
+}
+
+/// <summary>
+/// <exception cref="System.NullReferenceException"/>
+/// </summary>
+public void Method2()
+{
+    var x = 1 / 0;
+}
+```
+
+### EX026: Document all explicitly thrown exceptions when using `<exception>` tags
+
+Flags methods that already document one or more exceptions using `<exception>` XML tags but forget to document additional exceptions that are explicitly thrown within the method body.
+
+❌ Bad:
+```csharp
+/// <summary>
+/// Does something.
+/// </summary>
+/// <exception cref="System.InvalidOperationException"/>
+public void M()
+{
+    throw new InvalidOperationException();
+    throw new ArgumentException("arg"); // not documented
+}
+```
+
+✅ Good:
+```csharp
+/// <summary>
+/// Does something.
+/// </summary>
+/// <exception cref="System.InvalidOperationException"/>
+/// <exception cref="System.ArgumentException"/>
+public void M()
+{
+    throw new InvalidOperationException();
+    throw new ArgumentException("arg");
+}
+```
+
 ## Acknowledgments
 
 * [Davide Bellone](https://github.com/bellons91)
