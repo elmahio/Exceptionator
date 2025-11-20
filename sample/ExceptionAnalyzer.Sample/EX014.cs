@@ -8,13 +8,14 @@
             {
                 Console.WriteLine("EX014");
             }
-            catch (InvalidOperationException ex)
+            catch (IOException ex)
             {
                 // EX014: Avoid logging only ex.Message
                 LogError(ex.Message);
             }
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "EX025:Handle documented exceptions", Justification = "<Pending>")]
         private static void LogError(string message)
         {
             Console.WriteLine(message);

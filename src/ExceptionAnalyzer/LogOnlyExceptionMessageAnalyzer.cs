@@ -48,6 +48,10 @@ namespace ExceptionAnalyzer
             var invocationExpressions = block.DescendantNodes().OfType<InvocationExpressionSyntax>();
             foreach (var invocation in invocationExpressions)
             {
+                var methodName = GetMethodName(invocation);
+                if (methodName is null || !LooksLikeLoggingMethod(methodName))
+                    continue;
+
                 var arguments = invocation.ArgumentList.Arguments;
 
                 var hasExMessage = arguments.Any(arg =>
@@ -65,6 +69,30 @@ namespace ExceptionAnalyzer
                     context.ReportDiagnostic(Diagnostic.Create(Rule, invocation.GetLocation()));
                 }
             }
+        }
+
+        private static string? GetMethodName(InvocationExpressionSyntax invocation)
+        {
+            return invocation.Expression switch
+            {
+                MemberAccessExpressionSyntax memberAccess => memberAccess.Name.Identifier.Text,
+                IdentifierNameSyntax identifier           => identifier.Identifier.Text,
+                _                                         => null
+            };
+        }
+
+        private static bool LooksLikeLoggingMethod(string methodName)
+        {
+            if (string.IsNullOrEmpty(methodName))
+                return false;
+
+            // Typical logging method patterns across ILogger, Serilog, NLog, etc.
+            if (methodName.StartsWith("Log"))
+                return true;
+
+            return methodName is
+                "Error" or "Fatal" or "Warn" or "Warning" or
+                "Info" or "Information" or "Debug" or "Trace";
         }
     }
 }

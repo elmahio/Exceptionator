@@ -13,6 +13,8 @@ namespace ExceptionAnalyzer.Test
 using System;
 class C
 {
+    private readonly ILogger _logger;
+
     void M()
     {
         try
@@ -20,20 +22,49 @@ class C
         }
         catch (Exception ex)
         {
-            Console.WriteLine(ex.Message);
+            _logger.LogError(ex.Message);
         }
     }
+}
+
+public interface ILogger
+{
+    void LogError(string message);
 }";
 
             var expected = new DiagnosticResult(LogOnlyExceptionMessageAnalyzer.DiagnosticId, DiagnosticSeverity.Warning)
                 .WithMessage("Log the entire exception to preserve stack trace and context.")
-                .WithSpan(12, 13, 12, 42);
+                .WithSpan(14, 13, 14, 41);
 
             await VerifyAnalyzerAsync(source, expected);
         }
 
         [Test]
         public async Task DoesNotReportWhenBothMessageAndExceptionAreLogged() => await VerifyAnalyzerAsync(@"
+using System;
+class C
+{
+    private readonly ILogger _logger;
+
+    void M()
+    {
+        try
+        {
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex.Message, ex);
+        }
+    }
+}
+
+public interface ILogger
+{
+    void LogError(string message, Exception exception);
+}");
+
+        [Test]
+        public async Task DoesNotReportWhenMessageIsUsedInNonLoggingCall() => await VerifyAnalyzerAsync(@"
 using System;
 class C
 {
@@ -44,9 +75,11 @@ class C
         }
         catch (Exception ex)
         {
-            Console.WriteLine(""Error: "" + ex.Message, ex);
+            Save(ex.Message);
         }
     }
+
+    void Save(string message) { }
 }");
     }
 }
