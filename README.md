@@ -112,7 +112,14 @@ Detects try/catch blocks that don't add meaningful handling logic.
 
 ❌ Bad:
 ```csharp
-try { DoSomething(); } catch (Exception) { throw; }
+try
+{
+    DoSomething();
+}
+catch (Exception)
+{
+    throw;
+}
 ```
 
 ✅ Good:

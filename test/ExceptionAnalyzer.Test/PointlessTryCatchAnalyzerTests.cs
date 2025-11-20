@@ -26,8 +26,8 @@ class C
 }";
 
             var expected = new DiagnosticResult(PointlessTryCatchAnalyzer.DiagnosticId, DiagnosticSeverity.Info)
-                .WithMessage("This try/catch block doesn't add any handling or logic.")
-                .WithSpan(10, 9, 13, 10);
+                .WithMessage("This catch block only rethrows the exception. Consider removing it or adding meaningful handling.")
+                .WithSpan(12, 13, 12, 19);
 
             await VerifyAnalyzerAsync(source, expected);
         }
@@ -47,6 +47,27 @@ class C
         catch (Exception ex)
         {
             Console.WriteLine(ex.Message);
+        }
+    }
+}";
+            await VerifyAnalyzerAsync(source);
+        }
+
+        [Test]
+        public async Task DoesNotReportWhenWrapping()
+        {
+            var source = @"
+using System;
+class C
+{
+    void M()
+    {
+        try
+        {
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException(""An error occurred."", ex);
         }
     }
 }";

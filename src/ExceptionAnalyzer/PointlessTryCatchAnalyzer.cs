@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Linq;
 
 namespace ExceptionAnalyzer
 {
@@ -18,13 +19,12 @@ namespace ExceptionAnalyzer
         private static readonly DiagnosticDescriptor Rule = new(
             DiagnosticId,
             "Pointless try/catch block",
-            "This try/catch block doesn't add any handling or logic.",
+            "This catch block only rethrows the exception. Consider removing it or adding meaningful handling.",
             "CodeQuality",
             DiagnosticSeverity.Info,
             isEnabledByDefault: true);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
-            ImmutableArray.Create(Rule);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 
         public override void Initialize(AnalysisContext context)
         {
@@ -37,21 +37,21 @@ namespace ExceptionAnalyzer
         {
             var tryStmt = (TryStatementSyntax)context.Node;
 
-            // Example: try only containing a throw
-            if (tryStmt.Block?.Statements.Count == 1 &&
-                tryStmt.Block.Statements[0] is ThrowStatementSyntax &&
-                tryStmt.Catches.Count == 0)
+            foreach (var statements in tryStmt.Catches.Select(c => c.Block).Where(b => b != null).Select(b => b.Statements))
             {
-                context.ReportDiagnostic(Diagnostic.Create(Rule, tryStmt.GetLocation()));
-                return;
-            }
+                // We only care about a single statement in the catch body
+                if (statements.Count != 1)
+                    continue;
 
-            foreach (var catchClause in tryStmt.Catches)
-            {
-                var block = catchClause.Block;
-                if (block != null && block.Statements.Count == 1 && block.Statements[0] is ThrowStatementSyntax)
+                if (statements[0] is not ThrowStatementSyntax throwStatement)
+                    continue;
+
+                // Only flag a *bare* "throw;" (no expression)
+                if (throwStatement.Expression is null)
                 {
-                    context.ReportDiagnostic(Diagnostic.Create(Rule, catchClause.GetLocation()));
+                    // You can choose to report on the catch or on the throw
+                    var location = throwStatement.GetLocation();
+                    context.ReportDiagnostic(Diagnostic.Create(Rule, location));
                 }
             }
         }
